@@ -1,0 +1,4 @@
+
+backend/.env
+backend/wrangler.toml
+backend/node_modules
