@@ -10,7 +10,7 @@ const userRoute = new Hono<{
     }
 }>()
 
-userRoute.post('/api/v1/user/signup', async (c) => {
+userRoute.post('signup', async (c) => {
 
     const prisma = new PrismaClient({
         datasourceUrl: c.env?.DATABASE_URL,
@@ -30,12 +30,12 @@ userRoute.post('/api/v1/user/signup', async (c) => {
         return c.json({ jwt });
     } catch (e) {
         c.status(403);
-        return c.json({ e: "error while signing up" })
+        return c.json({ e: "error while sign up" })
     }
 
 })
 
-userRoute.post('/api/v1/user/signin', async (c) => {
+userRoute.post('signin', async (c) => {
 
     const prisma = new PrismaClient({
         datasourceUrl: c.env.DATABASE_URL
