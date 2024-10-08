@@ -1,52 +1,47 @@
 import { Hono } from "hono";
-import { Prisma, PrismaClient } from "@prisma/client/edge"
+import { PrismaClient } from "@prisma/client/edge"
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { verify } from "hono/jwt";
-import { sign } from "hono/jwt";
-import { auth } from "hono/utils/basic-auth";
 
 const blogRoute = new Hono<{
     Bindings : {
        DATABASE_URL: string,
        JWT_SECRET: string
-    }
+    }, Variables : {
+      userrID : any
+  }
 }>();
-     //this is middlware which is not working..bad bad
-  //  blogRoute.use("/*", async (c, next) => {
-  //   const authHeader = c.req.header("authorization") || "";
-  //   try {
-  //       const user = await verify(authHeader, c.env.JWT_SECRET);
-  //       if (user) {
-  //           c.set("jwtPayload", user.id);
-  //            next();
-  //       } else {
-  //           c.status(403);
-  //           return c.json({
-  //               message: "You are not logged in"
-  //           })
-  //       }
-  //   } catch(e) {
-  //       c.status(403);
-  //       return c.json({
-  //           message: "You are not logged in"
-  //       })
-//     }
-// });
+    
+//this is a middleware 
+   blogRoute.use("*", async (c, next) => {
+    const authHeader = c.req.header("authorization") || "";
+    try {
+        const user = await verify(authHeader, c.env.JWT_SECRET);
+        if (user) {
+            c.set("userrID", user.id);
+            await next();
+        } else {
+            c.status(403);
+            return c.json({
+                message: "You are not logged in"
+            })
+        }
+    } catch(e) {
+        c.status(403);
+        return c.json({
+            message: "You are not logged in"
+        })
+    }
+});
    
 
-  blogRoute.post('/posting', async (c)=>{
+  blogRoute.post('/post', async (c)=>{
+
     const prisma = new PrismaClient({
         datasourceUrl : c.env.DATABASE_URL
     }).$extends(withAccelerate());
 
-   //checking the authorization
-   const authHeader = c.req.header("Authorization") || "";
-   //getting the user
-    const user = await verify(authHeader , c.env.JWT_SECRET);
-    if(!user){
-      c.json("authentication failed, incorrect Authorization");
-    }
-  const userId : any = user.id;
+  const userId = c.get("userrID");
 
     const body = await c.req.json();
     try{
@@ -58,8 +53,8 @@ const blogRoute = new Hono<{
             authorId : userId ,    
         }
       })
-      if(!user){
-        return c.text("Error while creating User");
+      if(!post){
+        return c.text("Error while creating Post");
       }
       return c.json({"PostId" : post.id })
     }
@@ -75,14 +70,8 @@ const blogRoute = new Hono<{
     datasourceUrl : c.env.DATABASE_URL
    }).$extends(withAccelerate());
 
-     const authHeader = c.req.header("Authorization") || "";
-     const user = await verify(authHeader , c.env.JWT_SECRET);
-     if(!user){
-      c.json("no user found in localStorage || incorrect Authorization");
-      console.log("no user found in localStorage || incorrect Authorization");
-     }
-     const userId : any = user.id;
-     
+     const userId = c.get("userrID");
+
      const body = await c.req.json();
      if(!body){
       c.json("no body found");
@@ -93,7 +82,7 @@ const blogRoute = new Hono<{
         where : {
            id : body.id ,
            authorId : userId
-           }, 
+           },
            data:{
           title : body.title,
           content: body.content
@@ -111,9 +100,30 @@ const blogRoute = new Hono<{
    
   })
   
-  // blogRoute.get('/api/v1/blog/:id', (c) => {
-  //   return c.text('Hello Hono!')
-  // })
+  blogRoute.get('OneBlog/:id', async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl : c.env.DATABASE_URL
+    }).$extends(withAccelerate());
+
+    const id = c.req.param('id');
+    if(!id){
+      c.json("no params are given || postid doesnot exist");
+    }
+    try {
+      const Post = await prisma.post.findUnique({
+        where : {
+          id
+        }
+      });
+      c.json("Found Post : ");
+      return c.json({Post});
+    } catch (error) {
+      c.json({
+        "Error Encountered" : error
+      });
+    }
+    
+  })
   
   // blogRoute.get('/api/v1/blog/bulk', (c) => {
   //   return c.text('Hello Hono!')
