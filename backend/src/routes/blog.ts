@@ -100,33 +100,37 @@ const blogRoute = new Hono<{
    
   })
   
-  blogRoute.get('OneBlog/:id', async (c) => {
+  blogRoute.get('/blogg/:id', async (c) => {
+   
     const prisma = new PrismaClient({
-      datasourceUrl : c.env.DATABASE_URL
-    }).$extends(withAccelerate());
+      datasourceUrl : c.env?.DATABASE_URL
+    }).$extends(withAccelerate()); 
 
     const id = c.req.param('id');
+
+
     if(!id){
       c.json("no params are given || postid doesnot exist");
     }
-    try {
+    c.json("at the middle")
+  
       const Post = await prisma.post.findUnique({
         where : {
-          id
+           id : Number(id)
         }
       });
-      c.json("Found Post : ");
+      c.json("Post Found : ");
       return c.json({Post});
-    } catch (error) {
-      c.json({
-        "Error Encountered" : error
-      });
-    }
-    
   })
   
-  // blogRoute.get('/api/v1/blog/bulk', (c) => {
-  //   return c.text('Hello Hono!')
-  // })
+  blogRoute.get('/bulk', async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env?.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const posts = await prisma.post.findMany({});
+    return c.json(posts);
+  })
+
   
   export default blogRoute;
