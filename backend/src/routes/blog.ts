@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge"
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { verify } from "hono/jwt";
+import { BlogPostInput , BlogUpdateInput } from "@10-abhi/zodvalidator";
 
 const blogRoute = new Hono<{
     Bindings : {
@@ -44,6 +45,13 @@ const blogRoute = new Hono<{
   const userId = c.get("userrID");
 
     const body = await c.req.json();
+
+    const {success} = BlogPostInput.safeParse(body);
+    if(!success){
+      c.status(411);
+      c.json("incorrect inputs");
+    }
+
     try{
     
       const post = await prisma.post.create({
@@ -73,6 +81,11 @@ const blogRoute = new Hono<{
      const userId = c.get("userrID");
 
      const body = await c.req.json();
+     const {success} = BlogUpdateInput.safeParse(body);
+     if(!success){
+        c.status(411);
+        c.json("incorrect inputs");
+     }
      if(!body){
       c.json("no body found");
       console.log("no body found");

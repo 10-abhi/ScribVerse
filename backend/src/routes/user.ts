@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sign } from "hono/jwt"
+//importing from my own package which i published on npm.. hehe
+import {SiginInInput , SignupInput} from "@10-abhi/zodvalidator";
 
 const userRoute = new Hono<{
     Bindings: {
@@ -18,7 +20,11 @@ userRoute.post('signup', async (c) => {
 
     const body = await c.req.json();
 
-
+    const {success} = SignupInput.safeParse(body);
+    if(!success){
+        c.status(411);
+        c.json("incorrect inputs");
+    }
     try {
         const user = await prisma.user.create({
             data: {
@@ -44,7 +50,11 @@ userRoute.post('signin', async (c) => {
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-
+    const{success} = SiginInInput.safeParse(body);
+    if(!success){
+        c.status(411);
+        c.json("wrong inputs");
+    }
     try {
         const User = await prisma.user.findUnique({
             where: {
