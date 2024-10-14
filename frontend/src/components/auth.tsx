@@ -1,9 +1,9 @@
 import { ChangeEvent, useState } from "react"
 import { SignupType } from "@10-abhi/zodvalidator"
 import axios from "axios"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
-export const Auth = ({type} : {type : "singup" | "singin"})=>{
+export const Auth = ({type} : {type : "signup" | "signin"})=>{
         
         const [postInputs , setPostInputs] = useState<SignupType>({
             email : "",
@@ -14,18 +14,30 @@ export const Auth = ({type} : {type : "singup" | "singin"})=>{
         const navigate = useNavigate();
 
        async function SendRequest(){
-            const response =  await axios.post(`https://backend.abhigdscnew.workers.dev/api/vi/${type ==="singup" ? "signup" : "signin"}` ,
+              
+           try {
+
+             const response =  await axios.post(`https://backend.abhigdscnew.workers.dev/api/v1/user/${type ==="signup" ? "signup" : "signin"}` ,
                 postInputs );
                 const jwt = response.data;
                 localStorage.setItem("token" , jwt);
                 navigate("/blogs");
+
+           } catch (error) {
+               console.log(error);
+           }
+
+           
 
         }
     return <div className=" flex flex-col bg-gradient-to-tl from-sky-800 via-slate-800 to-cyan-900 min-h-full w-full justify-center items-center">
             {/* //heading */}
             <div className="flex flex-col gap-2 mb-2">
                 <div className="text-slate-50 text-4xl font-bold flex justify-center">Create an Account</div>
-                <div className="flex text-slate-200 justify-center text-2xl font-semibold">Already have an account</div>
+                <div className="flex gap-2 justify-center items-center">
+                    <div className="text-slate-300 flex text-2xl font-semibold">Already have an account?</div>
+                    <Link className="underline text-slate-400 flex text-xl font-medium" to={type==="signup"? "/signin" : "signup"} >Signin</Link>
+                </div>
             </div>
             {/* body */}
             <div className="flex flex-col text-slate-300 gap-2 text-xl font-sans">
@@ -41,7 +53,7 @@ export const Auth = ({type} : {type : "singup" | "singin"})=>{
                     password : e.target.value
                    })
                  }}></InputBox>
-                 {type === "singup" ? <InputBox label="name" placeholder="Your Name" onChange={e=>{
+                 {type === "signup" ? <InputBox label="name" placeholder="Your Name" onChange={e=>{
                    setPostInputs({
                     ...postInputs ,
                     name : e.target.value
@@ -65,7 +77,7 @@ interface InputBoxType {
 }
 function InputBox({label , placeholder , onChange , type} : InputBoxType){
     return <div>
-     <label className="block mb-2 text-sm text-black font-semibold pt-4">{label}</label>
+     <label className="block mb-2 text-sm text-white font-semibold pt-4">{label}</label>
      <input type={type|| "text"} placeholder={placeholder} onChange={onChange} className="rounded-md border-emerald-700 border-2"/>
     </div>
 }
