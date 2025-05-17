@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client/edge"
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { verify } from "hono/jwt";
 import { BlogPostInput , BlogUpdateInput } from "@10-abhi/zodvalidator";
+import authMiddleware from "../../middleware/middleware";
 
 const blogRoute = new Hono<{
     Bindings : {
@@ -11,32 +12,9 @@ const blogRoute = new Hono<{
     }, Variables : {
       userrID : any
   }
-}>();
-    
-//this is a middleware 
-   blogRoute.use("*", async (c, next) => {
-    const authHeader = c.req.header("authorization") || "";
-    try {
-        const user = await verify(authHeader, c.env.JWT_SECRET);
-        if (user) {
-            c.set("userrID", user.id);
-            await next();
-        } else {
-            c.status(403);
-            return c.json({
-                message: "You are not logged in"
-            })
-        }
-    } catch(e) {
-        c.status(403);
-        return c.json({
-            message: "You are not logged in"
-        })
-    }
-});
-   
+}>();   
 
-  blogRoute.post('/post', async (c)=>{
+  blogRoute.post('/post', authMiddleware ,async (c)=>{
 
     const prisma = new PrismaClient({
         datasourceUrl : c.env.DATABASE_URL
@@ -72,7 +50,7 @@ const blogRoute = new Hono<{
     
   })
   
-  blogRoute.put('/update', async (c) => {
+  blogRoute.put('/update', authMiddleware ,  async (c) => {
 
    const prisma = new PrismaClient({
     datasourceUrl : c.env.DATABASE_URL
@@ -113,7 +91,7 @@ const blogRoute = new Hono<{
    
   })
   
-  blogRoute.get('/blogg/:id', async (c) => {
+  blogRoute.get('/blogg/:id', authMiddleware , async (c) => {
    
     const prisma = new PrismaClient({
       datasourceUrl : c.env?.DATABASE_URL
