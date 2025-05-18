@@ -1,12 +1,17 @@
-import { Hono } from 'hono'
-import blogRoute from './routes/blog';
-import userRoute from './routes/user';
-import { cors } from 'hono/cors';
+import { Hono } from "hono"
+import { cors } from "hono/cors"
+import userRoute from "./routes/user"
+import blogRoute from "./routes/blog"
 
+const app = new Hono()
 
-const app = new Hono<{}>();
-app.use('/*' , cors());
-app.route('api/v1/user' , userRoute);
-app.route('api/v1/blog' , blogRoute);
+app.use("*", cors())
 
-export default app;
+app.route("/api/v1/user", userRoute)
+app.route("/api/v1/blog", blogRoute)
+
+app.get("/", (c) => {
+  return c.json({ status: "ok", message: "ScribVerse API is running" })
+})
+
+export default app
