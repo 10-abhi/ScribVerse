@@ -46,9 +46,16 @@ const HomePage = () => {
         const [blogsData, categoriesData] = await Promise.all([getAllBlogs(), getCategories()])
 
         if (Array.isArray(blogsData)) {
+          const screenWidht = window.innerWidth;
+          let slicecount = 3;
+          if(screenWidht<640){
+            slicecount = 2;
+          }else if ( screenWidht >= 640 && screenWidht < 1024){
+            slicecount = 4;
+          }
           // Sort by views for featured blogs
           const sortedBlogs = [...blogsData].sort((a, b) => (b.views || 0) - (a.views || 0))
-          setFeaturedBlogs(sortedBlogs.slice(0, 3))
+          setFeaturedBlogs(sortedBlogs.slice(0, slicecount))
         } else {
           setFeaturedBlogs([])
           setError("Invalid data format received from server")
