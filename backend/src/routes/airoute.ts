@@ -7,7 +7,7 @@ export const airoute = new Hono<{
         DATABASE_URL: string
         // JWT_SECRET: string
         // openroutekey : string
-        aiapikey: string
+        aiapikey:string
     }
     //   Variables: {
     //     userId: string
@@ -29,7 +29,8 @@ airoute.get("get-topics", async (c) => {
                     role: "user",
                     content: "Give 5 trending tech blog topics for 2025. Return as a comma-separated list."
                 }
-            ]
+            ],
+            max_tokens:50
         });
 
         const topics = completion.choices[0].message.content;
