@@ -23,7 +23,13 @@ const HomePage = () => {
   const [searchLoading, setSearchLoading] = useState(false)
   const { isAuthenticated } = useAuth()
   const { isAppReady, setPageLoading } = useApp()
-  const [contentReady, setContentReady] = useState(false)
+  const [contentReady, setContentReady] = useState(() => {
+    // Check sessionStorage to persist loader state across navigations
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("scribverse-homepage-loaded") === "true";
+    }
+    return false;
+  });
 
   // Coordinate loading states with the app
   useEffect(() => {
@@ -31,9 +37,16 @@ const HomePage = () => {
 
     // Ensure content is ready only after app is ready
     if (isAppReady) {
+      // If already loaded, skip loader
+      if (sessionStorage.getItem("scribverse-homepage-loaded") === "true") {
+        setContentReady(true);
+        setPageLoading(false);
+        return;
+      }
       const timer = setTimeout(() => {
         setContentReady(true)
         setPageLoading(false)
+        sessionStorage.setItem("scribverse-homepage-loaded", "true");
       }, 300)
 
       return () => clearTimeout(timer)
