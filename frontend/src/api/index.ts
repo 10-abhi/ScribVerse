@@ -271,3 +271,33 @@ export const searchBlogs = async (query: string): Promise<Blog[]> => {
 
   return Array.isArray(response.data) ? response.data : []
 }
+
+//get trending topics api
+export const gettrendingTopics = async (token: string): Promise<string[]> => {
+  const response = await apiCall<{ topics: string }>("/api/v1/airoute/get-topics", {
+    method: "GET",
+    headers: {
+      "Authorization": token
+    }
+  });
+  if (response.error || response.status >= 400 || !response.data?.topics) {
+    console.error("Failed to search blogs:", response.error || response.data)
+    return []
+  }
+  return response.data.topics.split(",").map((t) => t.trim())
+}
+
+//generate the content from ai by topic
+export const generateContentByAi = async(token:string , query:string)=>{
+  const response = await apiCall<{content:string}>(`/api/v1/airoute/generate-content?title=${encodeURIComponent(query)}`,{
+    method:"GET",
+    headers:{
+      "Authorization":token
+    }
+  });
+  if(response.error || !response.data?.content){
+    console.error("Failed to generate the content",response.error||response.data);
+    return[];
+  }
+  return response.data.content;
+}
